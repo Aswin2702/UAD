@@ -59,7 +59,9 @@ input:focus {
   border-color: #00796b;
 }
 
-h1, h2, p {
+h1,
+h2,
+p {
   text-align: center;
 }
 

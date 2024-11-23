@@ -3,6 +3,8 @@ from flask_cors import CORS
 import joblib
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 
 app = Flask(__name__)
@@ -10,6 +12,20 @@ CORS(app)
 
 
 model = joblib.load('model.joblib')
+
+def preprocessing(df):
+    def le(df):
+            for col in df.columns:
+               if df[col].dtype == 'object':
+                label_encoder = LabelEncoder()
+                df[col] = label_encoder.fit_transform(df[col])
+    le(df)
+
+    scale = StandardScaler()
+    df = scale.fit_transform(df)
+
+    return df
+    
 
 # Manual
 def predict_manual(data):
@@ -27,13 +43,8 @@ def predict_manual(data):
         
     df = df[expected_columns]
     
-    # Convert categorical columns using label encoder if needed
-    le = LabelEncoder()
-    for col in ['protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes', 'count', 'same_srv_rate', 'diff_srv_rate', 'dst_host_srv_count', 'dst_host_same_srv_rate']:
-        df[col] = le.fit_transform(df[col])
-    scale = StandardScaler()
-    df = scale.fit_transform(df)
-    print(df)
+    df = preprocessing(df)
+
     prediction = model.predict(df)
     return prediction.tolist()
 
@@ -51,23 +62,11 @@ def predict_csv(file):
         ]
 
         df = df[expected_columns]
-        print(df.columns)
-        
+          
         missing_columns = [col for col in expected_columns if col not in df.columns]
         if missing_columns:
             raise ValueError(f"Missing columns in input file: {missing_columns}")
-        
-        def le(df):
-            for col in df.columns:
-               if df[col].dtype == 'object':
-                label_encoder = LabelEncoder()
-                df[col] = label_encoder.fit_transform(df[col])
-        le(df)
-        
-        df = df[expected_columns]
 
-        
-        # Ensure numerical features are properly converted
         numerical_columns = [
             'src_bytes', 'dst_bytes', 'count',
             'same_srv_rate', 'diff_srv_rate',
@@ -78,6 +77,8 @@ def predict_csv(file):
         # Handle missing or invalid numerical data
         if df[numerical_columns].isnull().any().any():
             raise ValueError("Numerical columns contain invalid or missing values.")
+        
+        df = preprocessing(df)
 
         # Make predictions
         predictions = model.predict(df)
@@ -104,6 +105,59 @@ def predict():
     
     except Exception as e:
         return jsonify({'error': str(e)})
+    
+# Metrix
+@app.route('/metrics', methods=['GET'])
+def metrics():
+    try:
+        trn = pd.read_csv('Train_data.csv')
+        tst = pd.read_csv('Test_data.csv')
+
+        def le(df):
+            for col in df.columns:
+                if df[col].dtype == 'object':
+                    label_encoder = LabelEncoder()
+                    df[col] = label_encoder.fit_transform(df[col])
+        le(trn)
+        le(tst)
+
+        trn_x = trn.drop(['class'], axis=1)
+        trn_y= trn['class']
+        selected_features = ['protocol_type',
+        'service',
+        'flag',
+        'src_bytes',
+        'dst_bytes',
+        'count',
+        'same_srv_rate',
+        'diff_srv_rate',
+        'dst_host_srv_count',
+        'dst_host_same_srv_rate'
+        ]
+        trn_x = trn_x[selected_features]
+        scale = StandardScaler()
+        trn_x = scale.fit_transform(trn_x)
+        tst = scale.fit_transform(tst)
+
+        x_train, x_test, y_train, y_test = train_test_split(trn_x, trn_y, train_size=0.80)
+        
+        y_pred = model.predict(x_test)
+
+        # Calculate metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        f1 = f1_score(y_test, y_pred, average='weighted')
+        precision = precision_score(y_test, y_pred, average='weighted')
+        recall = recall_score(y_test, y_pred, average='weighted')
+
+
+        return jsonify({
+            "accuracy": accuracy,
+            "f1_score": f1,
+            "precision": precision,
+            "recall": recall
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # Run the Flask app
 if __name__ == '__main__':

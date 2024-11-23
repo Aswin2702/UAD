@@ -8,7 +8,11 @@ function SignInPage() {
 
   const handleSignIn = () => {
     // alert(`Signed in successfully as ${email}`);
-    navigate('/predict');
+    if (!email || !password) {
+      alert('Please enter the credantials.')
+      return
+    }
+    navigate('/metrics ');
   };
 
   return (
@@ -20,12 +24,14 @@ function SignInPage() {
         <input
           type="text"
           placeholder="Username"
+          required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
           placeholder="Password"
+          required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
