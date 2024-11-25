@@ -11,6 +11,7 @@
 
 .metrics-container {
   background: linear-gradient(135deg, #ffffff, #f9f9f9);
+  margin-top: -150px;
   width: 400px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);

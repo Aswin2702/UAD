@@ -1,0 +1,50 @@
+.landing-container {
+  position: relative;
+  text-align: left;
+  color: white;
+  padding: 0;
+}
+
+.cover {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.overlay-content {
+  z-index: 10;
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  color: aliceblue;
+  border-radius: 10px;
+  max-width: 50%;
+}
+
+.overlay-content h1 {
+  color: aliceblue;
+  font-size: 400%;
+  text-align: left;
+}
+
+.overlay-content button {
+  padding: 10px 10px; /* Smaller padding */
+  max-width: 200px;
+  font-size: 20px; /* Smaller font size */
+  color: white; /* Text color */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  transition: all 0.3s ease; /* Smooth transition */
+}
+
+.overlay-content button:hover {
+  background-color: #0056b3; /* Darker on hover */
+}
+
+.overlay-content p {
+  color: aliceblue;
+  text-align: left;
+  font-size: 120%;
+}

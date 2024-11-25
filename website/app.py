@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
+import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -12,6 +13,38 @@ CORS(app)
 
 
 model = joblib.load('model.joblib')
+
+# Path to save the uploaded file temporarily
+UPLOAD_FOLDER = './uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+@app.route('/upload_train', methods=['POST'])
+def upload_train():
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No file provided"}), 400
+        
+        file = request.files['file']
+
+        filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+        file.save(filepath)
+
+        data = pd.read_csv(filepath)
+        preprocessing(data)
+        if 'class' not in data.columns:
+            return jsonify({"error": "Dataset must include 'class' column"}), 400
+        
+        X = data.drop('class', axis=1)
+        y = data['class']
+
+        model.fit(X, y)
+
+        os.remove(filepath)
+
+        return jsonify({"message": "Model trained successfully!"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 def preprocessing(df):
     def le(df):

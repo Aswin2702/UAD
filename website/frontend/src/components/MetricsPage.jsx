@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import './Metrics.css';
 
 const MetricsPage = () => {
   const [metrics, setMetrics] = useState(null);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const fetchMetrics = async () => {
     try {
@@ -17,17 +19,11 @@ const MetricsPage = () => {
   };
 
   const trainModel = async () => {
-    try {
-      const response = await axios.post('http://127.0.0.1:5000/train');
-      alert('Model training started: ' + response.data.message);
-    } catch (err) {
-      alert('Error training model. Please try again.');
-    }
+    navigate('/train-model');
   };
 
   const makePrediction = () => {
-    // Placeholder function for making predictions
-    alert('Redirecting to Prediction Page...');
+    navigate('/predict');
   };
 
   return (
